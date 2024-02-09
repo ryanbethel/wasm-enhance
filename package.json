@@ -8,7 +8,6 @@
     "build:js": "esbuild enhance-entry.js --bundle --outfile=enhance.js",
     "build:wasm": "./javy/javy-x86_64-macos-v1.4.0 compile enhance.js -o enhance.wasm",
     "build": "npm run build:js && npm run build:wasm",
-    "start": "npx @web/dev-server --node-resolve --watch"
   },
   "devDependencies": {
     "@enhance/enhance-style-transform": "^0.1.2",
