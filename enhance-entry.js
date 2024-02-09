@@ -1,56 +1,32 @@
 import enhance from '@enhance/ssr'
 import styleTransform from '@enhance/enhance-style-transform'
 
-// export default function createHtmlRenderer ({elements, initialState}) {
-//   const html = enhance({
-//     styleTransforms: [ styleTransform ],
-//     elements,
-//     initialState,
-//   })
-
-//   return html
-// }
+// Read input from stdin
+const input = readInput();
 
 let elements = {
-  "my-heading": function MyHeading({ html }) {
-    return html`
-<h1>
-  <slot></slot>
-</h1>
-  `
+  "my-header": function MyHeader({ html }) {
+    return html`<h1><slot></slot></h1> `
   }
 }
-elements = { thing: "thang" }
 const initialState = {}
-const page = '<my-heading>Hello World</my-heading><p>Some More Stuff</p>'
+
+// Write the result to stdout
+writeOutput(ssr({ elements, initialState, markup: input.markup }))
 
 
 
-// export default function helloWorld() {
-export default function helloWorld() {
+
+
+function ssr({ elements = {}, initialState = {}, markup = '' }) {
   const html = enhance({
     styleTransforms: [styleTransform],
     elements,
     initialState,
   })
-
-  return html`${page}`
+  return html`${markup}`
 }
 
-writeOutput(helloWorld())
-
-
-// Read input from stdin
-const input = readInput();
-// Call the function with the input
-const result = foo(input);
-// Write the result to stdout
-writeOutput(result);
-
-// The main function.
-function foo(input) {
-  return { foo: input.n + 1, newBar: input.bar + "!" };
-}
 
 // Read input from stdin
 function readInput() {
@@ -89,4 +65,12 @@ function writeOutput(output) {
   // Stdout file descriptor
   const fd = 1;
   Javy.IO.writeSync(fd, buffer);
+}
+
+function mapStringToFunctionObj(obj) {
+  const functionObj = {};
+  for (const [key, funcString] of Object.entries(obj)) {
+    functionObj[key] = new Function("return " + funcString);
+  }
+  return functionObj;
 }
