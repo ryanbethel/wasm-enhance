@@ -7,8 +7,8 @@ The resulting WASM module requires a [WASI](https://wasi.dev/) (Web Assembly Sys
 Wasmtime has supported packages for many [languages](https://docs.wasmtime.dev/lang.html) (including, python, ruby, rust, etc.).
 There is also a browser shim to run in the [browser](https://github.com/bjorn3/browser_wasi_shim) although this not necessary because enhance can be bundled direcly in JS for the browser. 
 
-## Try it
-The compiled wasm is included in the repository so you should be able to test it without compiling it by:
+## Try it without building
+The compiled wasm is included in the repository. Give it a try. 
 1. Install [Wasmtime](https://wasmtime.dev/) to test the output.  
 2. Run `cat input.json | wasmtime enhance.wasm` to see results. 
 
