@@ -13,5 +13,8 @@
     "@enhance/enhance-style-transform": "^0.1.2",
     "@enhance/ssr": "^3.5.1",
     "esbuild": "^0.19.11"
+  },
+  "dependencies": {
+    "javy": "^0.1.2"
   }
 }

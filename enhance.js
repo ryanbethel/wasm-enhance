@@ -1097,14 +1097,14 @@
     [159, 376]
   ]);
   var fromCodePoint = (_a = String.fromCodePoint) !== null && _a !== void 0 ? _a : function(codePoint) {
-    let output = "";
+    let output2 = "";
     if (codePoint > 65535) {
       codePoint -= 65536;
-      output += String.fromCharCode(codePoint >>> 10 & 1023 | 55296);
+      output2 += String.fromCharCode(codePoint >>> 10 & 1023 | 55296);
       codePoint = 56320 | codePoint & 1023;
     }
-    output += String.fromCharCode(codePoint);
-    return output;
+    output2 += String.fromCharCode(codePoint);
+    return output2;
   };
   function replaceCodePoint(codePoint) {
     var _a2;
@@ -8278,7 +8278,7 @@
   // node_modules/@enhance/ssr/index.mjs
   function psudoUUID() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0, v = c == "x" ? r : r & 3 | 8;
+      var r2 = Math.random() * 16 | 0, v = c == "x" ? r2 : r2 & 3 | 8;
       return v.toString(16);
     });
   }
@@ -8677,9 +8677,46 @@
     return cssParser.stringify(parsed);
   }
 
+  // node_modules/javy/dist/index.js
+  var r = /* @__PURE__ */ ((t) => (t[t.Stdin = 0] = "Stdin", t[t.Stdout = 1] = "Stdout", t[t.Stderr = 2] = "Stderr", t))(r || {});
+
+  // node_modules/javy/dist/fs/index.js
+  function o(i) {
+    let r2 = new Uint8Array(1024), e = 0;
+    for (; ; ) {
+      const t = Javy.IO.readSync(i, r2.subarray(e));
+      if (t < 0)
+        throw Error("Error while reading from file descriptor");
+      if (t === 0)
+        return r2.subarray(0, e + t);
+      if (e += t, e === r2.length) {
+        const n = new Uint8Array(r2.length * 2);
+        n.set(r2), r2 = n;
+      }
+    }
+  }
+  function l(i, r2) {
+    for (; r2.length > 0; ) {
+      const e = Javy.IO.writeSync(i, r2);
+      if (e < 0)
+        throw Error("Error while writing to file descriptor");
+      if (e === 0)
+        throw Error("Could not write all contents in buffer to file descriptor");
+      r2 = r2.subarray(e);
+    }
+  }
+
   // enhance-entry.js
-  var input = readInput();
-  writeOutput(ssr({ elements: mapStringToFunctionObj(input.elements), initialState: input.initialState, markup: input.markup }));
+  var inputBuffer = o(r.Stdin);
+  var input = JSON.parse(new TextDecoder().decode(inputBuffer));
+  var textEncoder = new TextEncoder();
+  var output = ssr({
+    elements: mapStringToFunctionObj(input.elements),
+    initialState: input.initialState || {},
+    markup: input.markup
+  });
+  l(r.Stdout, textEncoder.encode(output));
+  l(r.Stderr, textEncoder.encode("--SSR Complete--"));
   function ssr({ elements = {}, initialState = {}, markup = "" }) {
     const html = Enhancer({
       styleTransforms: [styleTransform],
@@ -8687,33 +8724,6 @@
       initialState
     });
     return html`${markup}`;
-  }
-  function readInput() {
-    const chunkSize = 1024;
-    const inputChunks = [];
-    let totalBytes = 0;
-    while (1) {
-      const buffer = new Uint8Array(chunkSize);
-      const fd = 0;
-      const bytesRead = Javy.IO.readSync(fd, buffer);
-      totalBytes += bytesRead;
-      if (bytesRead === 0) {
-        break;
-      }
-      inputChunks.push(buffer.subarray(0, bytesRead));
-    }
-    const { finalBuffer } = inputChunks.reduce((context, chunk) => {
-      context.finalBuffer.set(chunk, context.bufferOffset);
-      context.bufferOffset += chunk.length;
-      return context;
-    }, { bufferOffset: 0, finalBuffer: new Uint8Array(totalBytes) });
-    return JSON.parse(new TextDecoder().decode(finalBuffer));
-  }
-  function writeOutput(output) {
-    const encodedOutput = new TextEncoder().encode(JSON.stringify(output));
-    const buffer = new Uint8Array(encodedOutput);
-    const fd = 1;
-    Javy.IO.writeSync(fd, buffer);
   }
   function mapStringToFunctionObj(obj) {
     const functionObj = {};
