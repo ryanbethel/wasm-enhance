@@ -12,7 +12,7 @@ let elements = {
 const initialState = {}
 
 // Write the result to stdout
-writeOutput(ssr({ elements, initialState, markup: input.markup }))
+writeOutput(ssr({ elements: mapStringToFunctionObj(input.elements), initialState: input.initialState, markup: input.markup }))
 
 
 
@@ -70,7 +70,7 @@ function writeOutput(output) {
 function mapStringToFunctionObj(obj) {
   const functionObj = {};
   for (const [key, funcString] of Object.entries(obj)) {
-    functionObj[key] = new Function("return " + funcString);
+    functionObj[key] = (new Function("return " + funcString))();
   }
   return functionObj;
 }

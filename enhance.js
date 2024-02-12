@@ -8284,8 +8284,8 @@
   }
   function Enhancer(options = {}) {
     const {
-      initialState: initialState2 = {},
-      elements: elements2 = [],
+      initialState = {},
+      elements = [],
       scriptTransforms = [],
       styleTransforms = [],
       // uuidFunction=nanoid,
@@ -8293,7 +8293,7 @@
       bodyContent = false,
       enhancedAttr = true
     } = options;
-    const store = Object.assign({}, initialState2);
+    const store = Object.assign({}, initialState);
     function processCustomElements({ node }) {
       const collectedStyles = [];
       const collectedScripts = [];
@@ -8305,7 +8305,7 @@
             const frag = parseFragment("");
             frag.childNodes = [...child.childNodes];
           }
-          if (elements2[child.tagName]) {
+          if (elements[child.tagName]) {
             const {
               frag: expandedTemplate,
               styles: stylesToCollect,
@@ -8313,7 +8313,7 @@
               links: linksToCollect
             } = expandTemplate({
               node: child,
-              elements: elements2,
+              elements,
               state: {
                 context,
                 instanceID: uuidFunction(),
@@ -8410,11 +8410,11 @@
     collect.push(strings[strings.length - 1]);
     return collect.join("");
   }
-  function expandTemplate({ node, elements: elements2, state, styleTransforms, scriptTransforms }) {
+  function expandTemplate({ node, elements, state, styleTransforms, scriptTransforms }) {
     const tagName = node.tagName;
     const frag = renderTemplate({
       name: node.tagName,
-      elements: elements2,
+      elements,
       attrs: node.attrs,
       state
     }) || "";
@@ -8454,11 +8454,11 @@
     }).map((attr) => `${attr.name}="${attr.value}"`);
     return `<link ${attrs.join(" ")} />`;
   }
-  function renderTemplate({ name, elements: elements2, attrs = [], state = {} }) {
+  function renderTemplate({ name, elements, attrs = [], state = {} }) {
     attrs = attrs ? attrsToState(attrs) : {};
     state.attrs = attrs;
-    const templateRenderFunction = elements2[name]?.render || elements2[name]?.prototype?.render;
-    const template = templateRenderFunction ? templateRenderFunction : elements2[name];
+    const templateRenderFunction = elements[name]?.render || elements[name]?.prototype?.render;
+    const template = templateRenderFunction ? templateRenderFunction : elements[name];
     if (template && typeof template === "function") {
       return parseFragment(template({ html: render, state }));
     } else {
@@ -8533,11 +8533,11 @@
     );
   }
   function findSlots(node) {
-    const elements2 = [];
+    const elements = [];
     const find = (node2) => {
       for (const child of node2.childNodes) {
         if (child.tagName === "slot") {
-          elements2.push(child);
+          elements.push(child);
         }
         if (child.childNodes) {
           find(child);
@@ -8545,20 +8545,20 @@
       }
     };
     find(node);
-    return elements2;
+    return elements;
   }
   function findInserts(node) {
-    const elements2 = [];
+    const elements = [];
     const find = (node2) => {
       for (const child of node2.childNodes) {
         const hasSlot = child.attrs?.find((attr) => attr.name === "slot");
         if (hasSlot) {
-          elements2.push(child);
+          elements.push(child);
         }
       }
     };
     find(node);
-    return elements2;
+    return elements;
   }
   function replaceSlots(node, slots) {
     slots.forEach((slot) => {
@@ -8679,18 +8679,12 @@
 
   // enhance-entry.js
   var input = readInput();
-  var elements = {
-    "my-header": function MyHeader({ html }) {
-      return html`<h1><slot></slot></h1> `;
-    }
-  };
-  var initialState = {};
-  writeOutput(ssr({ elements, initialState, markup: input.markup }));
-  function ssr({ elements: elements2 = {}, initialState: initialState2 = {}, markup = "" }) {
+  writeOutput(ssr({ elements: mapStringToFunctionObj(input.elements), initialState: input.initialState, markup: input.markup }));
+  function ssr({ elements = {}, initialState = {}, markup = "" }) {
     const html = Enhancer({
       styleTransforms: [styleTransform],
-      elements: elements2,
-      initialState: initialState2
+      elements,
+      initialState
     });
     return html`${markup}`;
   }
@@ -8720,5 +8714,12 @@
     const buffer = new Uint8Array(encodedOutput);
     const fd = 1;
     Javy.IO.writeSync(fd, buffer);
+  }
+  function mapStringToFunctionObj(obj) {
+    const functionObj = {};
+    for (const [key, funcString] of Object.entries(obj)) {
+      functionObj[key] = new Function("return " + funcString)();
+    }
+    return functionObj;
   }
 })();
